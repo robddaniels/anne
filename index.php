@@ -15,6 +15,7 @@
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script src="js/popup.js"></script>
         <script src="js/jquery.validate.js"></script>
+        <script src='https://www.hCaptcha.com/1/api.js' async defer></script>
 	</head>
 	<body>
         <div id="main">
@@ -71,7 +72,7 @@
                         <li>Creating strategies for supplementing human work with AI systems</li>
                         <li>Creating an actionable portfolio from your strategic plan</li>
                     </ul>
-                    <h4>View my <a href="https://www.linkedin.com/in/ajackley/">Linkedin</a> profile to learn more and <a href="#contact-form">contact</a> me for consultation.</h4>
+                    <h4>View my <a href="https://www.linkedin.com/in/ajackley/">Linkedin</a> profile to learn more and <a class="popup-with-form" href="#contact-form" onclick="hideThankyouMessage();">contact</a> me for consultation.</h4>
                 </div>
             </div> 
             <footer>
@@ -94,7 +95,9 @@
                     <span>
                         <textarea id="message" name="message" placeholder="Message"></textarea>
                     </span>
+                    <div class="h-captcha" data-sitekey="e4724cb8-1d30-4b94-9f22-117a493e6fce" data-size=""></div>
                     <button type="submit" name="contact-submit" id="contact-submit" class="contact-form-submit" data-alt-text="Sending..." data-submit-text="Submit" aria-live="assertive" value="wpforms-submit">Submit</button>
+                    <!--<button type="submit" id="contact-submit" class="h-captcha contact-form-submit" data-sitekey="e4724cb8-1d30-4b94-9f22-117a493e6fce" data-callback="onSubmit" data-alt-text="Sending..." data-submit-text="Submit" aria-live="assertive" value="wpforms-submit">Submit</button>-->
                 </fieldset>
                 <div id="thank-you-message-container">
                     <h3 class="thank-you-message">Thank You</h3>
@@ -109,24 +112,25 @@
 				'use strict';
                 $('#contact-form-fieldset').hide();
                 $('#thank-you-message-container').show();
-				//setTimeout(function(){
-  					//$('.mfp-bg,.mfp-content').fadeOut();
-				//}, 5000);
-				//setTimeout(function(){
-  					//$('.thank-you-message').remove();
-                   // $('#contact-form-fieldset').show();
-				//}, 6000);
+				setTimeout(function(){
+  					$('.mfp-bg,.mfp-wrap').fadeOut();
+				}, 6000);
 			}
+            
             function hideThankyouMessage() {
 				'use strict';
-                console.log('remove thank you');
+                //console.log('remove thank you');
                 if ($('#thank-you-message-container').css('display') == 'block') {
-                    console.log('thank you visible');
+                    //console.log('thank you visible');
 				    $('#thank-you-message-container').hide();
                     $('#contact-form-fieldset').show();
                 }
+                if ($('.mfp-bg') && $('.mfp-wrap').length) {
+                    //console.log('thank you visible');
+				    $('.mfp-bg,.mfp-wrap').fadeIn();
+                }
                 else {
-                    console.log('thank you hidden');
+                    //console.log('thank you hidden');
                 }
 			}
             $(document).ready(function() {
@@ -147,6 +151,10 @@
                         }
                     }
                 });
+                function onSubmit(token) {
+                    console.log('submit');
+                    document.getElementById('contact-form').submit();
+                }
                 $('#contact-form').validate({
 				  rules: {
 					name: {
@@ -183,7 +191,7 @@
                 $name = $_REQUEST['name'] ;
                 $subject = $_REQUEST['subject'] ;
                 $message = $_REQUEST['message'] ;
-                $toEmail = "shalizadad@gmail.com" ;
+                $toEmail = "ajackley+contact@gmail.com" ;
                 $body  =  "Name: $name \r\nEmail: $email \r\nMessage: $message \r\n";
                 $headers .= "From: contact@annejackley.com" . "\n";
                 $headers .= "Reply-To: contact@annejackley.com" . "\n"; 
@@ -194,11 +202,27 @@
                 if(!empty($email))
                 {
                     mail($toEmail, $subject, $body, $headers, $returnpath);
-                    /*echo "<script type='text/javascript'>\n";
-                    echo "showThankyouMessage();\n";
-                    echo "</script>";*/
                 }
             }
-		?>
+		
+            $data = array(
+                'secret' => "ES_af6a87ce1d184ba98cfcb9619fdcc955",
+                'response' => $_POST['h-captcha-response']
+            );
+            $verify = curl_init();
+            curl_setopt($verify, CURLOPT_URL, "https://hcaptcha.com/siteverify");
+            curl_setopt($verify, CURLOPT_POST, true);
+            curl_setopt($verify, CURLOPT_POSTFIELDS, http_build_query($data));
+            curl_setopt($verify, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($verify);
+            // var_dump($response);
+            $responseData = json_decode($response);
+            if($responseData->success) {
+                // your success code goes here
+            } 
+            else {
+            // return error to user; they did not pass
+            }
+        ?>
     </body>
 </html>
